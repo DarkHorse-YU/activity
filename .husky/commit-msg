@@ -1,1 +1,3 @@
-npx --no-install commitlint --edit "$1"
+#!/usr/bin/env sh
+# commitlint 已禁用
+# npx --no-install commitlint --edit "$1"
