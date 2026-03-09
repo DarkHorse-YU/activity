@@ -1,14 +1,8 @@
-import type { IDoubleTokenRes } from '@/api/types/login'
 import type { CustomRequestOptions, IResponse } from '@/http/types'
-import { nextTick } from 'vue'
 import { useTokenStore } from '@/store/token'
-import { isDoubleTokenMode } from '@/utils'
+import { useUserStore } from '@/store/user'
 import { toLoginPage } from '@/utils/toLoginPage'
 import { ResultEnum } from './tools/enum'
-
-// 刷新 token 状态管理
-let refreshing = false // 防止重复刷新 token 标识
-let taskQueue: (() => void)[] = [] // 刷新 token 请求队列
 
 export function http<T>(options: CustomRequestOptions) {
   // 1. 返回 Promise 对象
@@ -25,81 +19,41 @@ export function http<T>(options: CustomRequestOptions) {
         const { code } = responseData
 
         // 检查是否是401错误（包括HTTP状态码401或业务码401）
-        const isTokenExpired = res.statusCode === 401 || code === 401
+        const isTokenExpired = res.statusCode === 401 || code === 401 || code === '401'
 
         if (isTokenExpired) {
+          // Token 失效，直接清理本地 token（不调用后端接口，避免循环）
           const tokenStore = useTokenStore()
-          if (!isDoubleTokenMode) {
-            // 未启用双token策略，清理用户信息，跳转到登录页
-            tokenStore.logout()
+          tokenStore.clearToken()
+          const userStore = useUserStore()
+          userStore.clearUserInfo()
+
+          uni.showToast({
+            title: '登录已过期，请重新登录',
+            icon: 'none',
+          })
+          setTimeout(() => {
             toLoginPage()
-            return reject(res)
-          }
-
-          /* -------- 无感刷新 token ----------- */
-          const { refreshToken } = tokenStore.tokenInfo as IDoubleTokenRes || {}
-          // token 失效的，且有刷新 token 的，才放到请求队列里
-          if (refreshToken) {
-            taskQueue.push(() => {
-              resolve(http<T>(options))
-            })
-          }
-
-          // 如果有 refreshToken 且未在刷新中，发起刷新 token 请求
-          if (refreshToken && !refreshing) {
-            refreshing = true
-            try {
-              // 发起刷新 token 请求（使用 store 的 refreshToken 方法）
-              await tokenStore.refreshToken()
-              // 刷新 token 成功
-              refreshing = false
-              nextTick(() => {
-                // 关闭其他弹窗
-                uni.hideToast()
-                uni.showToast({
-                  title: 'token 刷新成功',
-                  icon: 'none',
-                })
-              })
-              // 将任务队列的所有任务重新请求
-              taskQueue.forEach(task => task())
-            }
-            catch (refreshErr) {
-              console.error('刷新 token 失败:', refreshErr)
-              refreshing = false
-              // 刷新 token 失败，跳转到登录页
-              nextTick(() => {
-                // 关闭其他弹窗
-                uni.hideToast()
-                uni.showToast({
-                  title: '登录已过期，请重新登录',
-                  icon: 'none',
-                })
-              })
-              // 清除用户信息
-              await tokenStore.logout()
-              // 跳转到登录页
-              setTimeout(() => {
-                toLoginPage()
-              }, 2000)
-            }
-            finally {
-              // 不管刷新 token 成功与否，都清空任务队列
-              taskQueue = []
-            }
-          }
-
+          }, 1500)
           return reject(res)
         }
 
         // 处理其他成功状态（HTTP状态码200-299）
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          // 处理业务逻辑错误
-          if (code !== ResultEnum.Success0 && code !== ResultEnum.Success200) {
+          // 处理业务逻辑错误（支持数字和字符串类型的成功码：0, 200, '0', '200'）
+          const isSuccess = code === ResultEnum.Success0
+            || code === ResultEnum.Success200
+            || code === '0'
+            || code === '200'
+            || code === 0
+            || code === 200
+
+          if (!isSuccess) {
             uni.showToast({
               icon: 'none',
               title: responseData.msg || responseData.message || '请求错误',
             })
+            return reject(new Error(responseData.msg || responseData.message || '请求错误'))
           }
           return resolve(responseData.data)
         }
@@ -159,6 +113,7 @@ export function httpPost<T>(url: string, data?: Record<string, any>, query?: Rec
     ...options,
   })
 }
+
 /**
  * PUT 请求
  */

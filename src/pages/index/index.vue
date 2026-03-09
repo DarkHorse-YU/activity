@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useTokenStore } from '@/store/token'
+
 defineOptions({
   name: 'Home',
 })
@@ -9,6 +11,8 @@ definePage({
     navigationBarTitleText: '首页',
   },
 })
+
+const tokenStore = useTokenStore()
 
 // 背景图片
 const bgImageUrl = 'http://124.221.55.156:9000/xiaoyu/activity/design2.png'
@@ -56,17 +60,33 @@ async function fetchSubsidyInfo() {
   }
 }
 
+// 检查登录状态，未登录则跳转登录页
+function checkLoginAndNavigate(url: string) {
+  if (!tokenStore.hasLogin) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+    })
+    setTimeout(() => {
+      uni.navigateTo({ url: `/pages/auth/login?redirect=${encodeURIComponent(url)}` })
+    }, 1000)
+    return false
+  }
+  uni.navigateTo({ url })
+  return true
+}
+
 // 按钮点击事件
 function handleCarParticipate() {
   uni.navigateTo({ url: '/pages/activity/car-participate' })
 }
 
 function handleSubsidyApply() {
-  uni.navigateTo({ url: '/pages/activity/subsidy-apply' })
+  checkLoginAndNavigate('/pages/activity/subsidy-apply')
 }
 
 function handleMyApplication() {
-  uni.navigateTo({ url: '/pages/activity/my-application' })
+  checkLoginAndNavigate('/pages/activity/my-application')
 }
 
 function handleActivityRules() {
