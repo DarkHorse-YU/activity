@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useTokenStore } from '@/store/token'
-
 defineOptions({
   name: 'Home',
 })
@@ -11,8 +9,6 @@ definePage({
     navigationBarTitleText: '首页',
   },
 })
-
-const tokenStore = useTokenStore()
 
 // 背景图片
 const bgImageUrl = 'http://124.221.55.156:9000/xiaoyu/activity/design2.png'
@@ -62,7 +58,9 @@ async function fetchSubsidyInfo() {
 
 // 检查登录状态，未登录则跳转登录页
 function checkLoginAndNavigate(url: string) {
-  if (!tokenStore.hasLogin) {
+  // 直接读取 Storage，避免 Pinia 持久化插件初始化延迟问题
+  const token = uni.getStorageSync('token')
+  if (!token) {
     uni.showToast({
       title: '请先登录',
       icon: 'none',

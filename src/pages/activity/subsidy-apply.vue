@@ -419,14 +419,28 @@ onLoad(() => {
 
 <template>
   <view class="page-container">
+    <!-- 背景装饰 -->
+    <view class="bg-decoration">
+      <view class="bg-circle bg-circle-1" />
+      <view class="bg-circle bg-circle-2" />
+    </view>
+
     <!-- 加载中 -->
     <view v-if="loading" class="loading-container">
-      <wd-loading />
-      <text class="loading-text">加载中...</text>
+      <view class="loading-icon-wrapper">
+        <wd-loading size="40px" />
+      </view>
+      <text class="loading-text">加载表单中...</text>
     </view>
 
     <!-- 表单内容 -->
     <view v-else-if="formTemplate" class="form-content">
+      <!-- 页面标题 -->
+      <view class="page-header">
+        <text class="page-title">{{ formTemplate.activityName || '补贴申报' }}</text>
+        <text class="page-subtitle">请填写以下信息完成申报</text>
+      </view>
+
       <!-- 多个分组时显示 Tab -->
       <view v-if="groupCount > 1" class="tabs-container">
         <view
@@ -436,173 +450,202 @@ onLoad(() => {
           :class="{ active: activeTab === index }"
           @tap="switchTab(index)"
         >
-          {{ group.groupName }}
+          <text class="tab-text">{{ group.groupName }}</text>
+          <view v-if="activeTab === index" class="tab-indicator" />
         </view>
       </view>
 
-      <!-- 当前分组的标题 -->
-      <view v-if="groupCount > 1" class="group-title">
-        {{ currentGroup?.groupName }}
-      </view>
-
-      <!-- 表单字段 -->
-      <view class="form-fields">
-        <view v-for="field in currentGroup?.fields" :key="field.fieldId" class="form-item">
-          <!-- 标签 -->
-          <view class="field-label">
-            <text class="label-text">{{ field.fieldName }}</text>
-            <text v-if="field.isRequired === 1" class="required-mark">*</text>
+      <!-- 表单字段卡片 -->
+      <view class="form-card">
+        <!-- 当前分组的标题 -->
+        <view v-if="groupCount > 1" class="group-header">
+          <view class="group-icon">
+            <text>{{ activeTab + 1 }}</text>
           </view>
+          <text class="group-title">{{ currentGroup?.groupName }}</text>
+        </view>
 
-          <!-- 文本输入 -->
-          <template v-if="field.fieldType === 'text'">
-            <input
-              v-model="formData[field.fieldCode]"
-              class="field-input"
-              :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
-              :disabled="isFieldDisabled(field)"
-              :placeholder="`请输入${field.fieldName}`"
-              @blur="handleFieldBlur(field)"
-            >
-            <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
-          </template>
-
-          <!-- 数字输入 -->
-          <template v-else-if="field.fieldType === 'number'">
-            <input
-              v-model="formData[field.fieldCode]"
-              type="number"
-              class="field-input"
-              :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
-              :disabled="isFieldDisabled(field)"
-              :placeholder="`请输入${field.fieldName}`"
-              @blur="handleFieldBlur(field)"
-            >
-            <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
-          </template>
-
-          <!-- 手机号输入 -->
-          <template v-else-if="field.fieldType === 'phone'">
-            <input
-              v-model="formData[field.fieldCode]"
-              type="number"
-              class="field-input"
-              :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
-              :disabled="isFieldDisabled(field)"
-              placeholder="请输入手机号"
-              @blur="handleFieldBlur(field)"
-            >
-            <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
-          </template>
-
-          <!-- 金额输入 -->
-          <template v-else-if="field.fieldType === 'money'">
-            <input
-              v-model="formData[field.fieldCode]"
-              type="digit"
-              class="field-input"
-              :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
-              :disabled="isFieldDisabled(field)"
-              :placeholder="`请输入${field.fieldName}`"
-              @blur="handleFieldBlur(field)"
-            >
-            <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
-          </template>
-
-          <!-- 日期选择 -->
-          <picker
-            v-else-if="field.fieldType === 'date'"
-            mode="date"
-            :value="formData[field.fieldCode] || ''"
-            @change="(e) => formData[field.fieldCode] = e.detail.value"
-          >
-            <view class="field-picker" :class="{ disabled: isFieldDisabled(field) }">
-              <text v-if="formData[field.fieldCode]">{{ formData[field.fieldCode] }}</text>
-              <text v-else class="placeholder">请选择{{ field.fieldName }}</text>
+        <!-- 表单字段 -->
+        <view class="form-fields">
+          <view v-for="field in currentGroup?.fields" :key="field.fieldId" class="form-item">
+            <!-- 标签 -->
+            <view class="field-label">
+              <text class="label-text">{{ field.fieldName }}</text>
+              <text v-if="field.isRequired === 1" class="required-mark">*</text>
             </view>
-          </picker>
 
-          <!-- 枚举选择 -->
-          <picker
-            v-else-if="field.fieldType === 'enum'"
-            mode="selector"
-            :range="parseEnumOptions(field.enumOptions)"
-            :value="parseEnumOptions(field.enumOptions).indexOf(formData[field.fieldCode])"
-            @change="(e) => formData[field.fieldCode] = parseEnumOptions(field.enumOptions)[e.detail.value]"
-          >
-            <view class="field-picker" :class="{ disabled: isFieldDisabled(field) }">
-              <text v-if="formData[field.fieldCode]">{{ formData[field.fieldCode] }}</text>
-              <text v-else class="placeholder">请选择{{ field.fieldName }}</text>
-            </view>
-          </picker>
+            <!-- 文本输入 -->
+            <template v-if="field.fieldType === 'text'">
+              <input
+                v-model="formData[field.fieldCode]"
+                class="field-input"
+                :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
+                :disabled="isFieldDisabled(field)"
+                :placeholder="`请输入${field.fieldName}`"
+                placeholder-class="input-placeholder"
+                @blur="handleFieldBlur(field)"
+              >
+              <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
+            </template>
 
-          <!-- 图片上传 -->
-          <view v-else-if="field.fieldType === 'image'" class="upload-container">
-            <view
-              class="upload-box"
-              :class="{ disabled: isFieldDisabled(field) }"
-              @tap="!isFieldDisabled(field) && uploadImage(field)"
+            <!-- 数字输入 -->
+            <template v-else-if="field.fieldType === 'number'">
+              <input
+                v-model="formData[field.fieldCode]"
+                type="number"
+                class="field-input"
+                :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
+                :disabled="isFieldDisabled(field)"
+                :placeholder="`请输入${field.fieldName}`"
+                placeholder-class="input-placeholder"
+                @blur="handleFieldBlur(field)"
+              >
+              <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
+            </template>
+
+            <!-- 手机号输入 -->
+            <template v-else-if="field.fieldType === 'phone'">
+              <input
+                v-model="formData[field.fieldCode]"
+                type="number"
+                class="field-input"
+                :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
+                :disabled="isFieldDisabled(field)"
+                placeholder="请输入手机号"
+                placeholder-class="input-placeholder"
+                @blur="handleFieldBlur(field)"
+              >
+              <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
+            </template>
+
+            <!-- 金额输入 -->
+            <template v-else-if="field.fieldType === 'money'">
+              <view class="money-input-wrapper">
+                <text class="money-prefix">¥</text>
+                <input
+                  v-model="formData[field.fieldCode]"
+                  type="digit"
+                  class="field-input money-input"
+                  :class="{ disabled: isFieldDisabled(field), error: fieldErrors[field.fieldCode] }"
+                  :disabled="isFieldDisabled(field)"
+                  :placeholder="`请输入${field.fieldName}`"
+                  placeholder-class="input-placeholder"
+                  @blur="handleFieldBlur(field)"
+                >
+              </view>
+              <text v-if="fieldErrors[field.fieldCode]" class="field-error">{{ fieldErrors[field.fieldCode] }}</text>
+            </template>
+
+            <!-- 日期选择 -->
+            <picker
+              v-else-if="field.fieldType === 'date'"
+              mode="date"
+              :value="formData[field.fieldCode] || ''"
+              @change="(e) => formData[field.fieldCode] = e.detail.value"
             >
-              <image
-                v-if="formData[field.fieldCode]"
-                :src="formData[field.fieldCode]"
-                class="preview-image"
-                mode="aspectFill"
-              />
-              <view v-else class="upload-placeholder">
-                <text class="upload-icon">+</text>
-                <text class="upload-text">上传图片</text>
-                <text v-if="field.ocrEnabled === 1" class="ocr-tip">支持OCR识别</text>
+              <view class="field-picker" :class="{ disabled: isFieldDisabled(field), hasValue: formData[field.fieldCode] }">
+                <text v-if="formData[field.fieldCode]">{{ formData[field.fieldCode] }}</text>
+                <text v-else class="placeholder">请选择{{ field.fieldName }}</text>
+                <text class="picker-arrow">›</text>
+              </view>
+            </picker>
+
+            <!-- 枚举选择 -->
+            <picker
+              v-else-if="field.fieldType === 'enum'"
+              mode="selector"
+              :range="parseEnumOptions(field.enumOptions)"
+              :value="parseEnumOptions(field.enumOptions).indexOf(formData[field.fieldCode])"
+              @change="(e) => formData[field.fieldCode] = parseEnumOptions(field.enumOptions)[e.detail.value]"
+            >
+              <view class="field-picker" :class="{ disabled: isFieldDisabled(field), hasValue: formData[field.fieldCode] }">
+                <text v-if="formData[field.fieldCode]">{{ formData[field.fieldCode] }}</text>
+                <text v-else class="placeholder">请选择{{ field.fieldName }}</text>
+                <text class="picker-arrow">›</text>
+              </view>
+            </picker>
+
+            <!-- 图片上传 -->
+            <view v-else-if="field.fieldType === 'image'" class="upload-container">
+              <view
+                class="upload-box"
+                :class="{ disabled: isFieldDisabled(field), hasImage: formData[field.fieldCode] }"
+                @tap="!isFieldDisabled(field) && uploadImage(field)"
+              >
+                <image
+                  v-if="formData[field.fieldCode]"
+                  :src="formData[field.fieldCode]"
+                  class="preview-image"
+                  mode="aspectFill"
+                />
+                <view v-else class="upload-placeholder">
+                  <text class="upload-icon">+</text>
+                  <text class="upload-text">上传图片</text>
+                  <text v-if="field.ocrEnabled === 1" class="ocr-tip">支持OCR识别</text>
+                </view>
+              </view>
+              <view v-if="uploadingFields.has(field.fieldCode)" class="uploading-mask">
+                <wd-loading size="24px" />
               </view>
             </view>
-            <view v-if="uploadingFields.has(field.fieldCode)" class="uploading-mask">
-              <wd-loading size="24px" />
-            </view>
-          </view>
 
-          <!-- 文件上传 -->
-          <view v-else-if="field.fieldType === 'file'" class="upload-container">
-            <view
-              class="file-upload-box"
+            <!-- 文件上传 -->
+            <view v-else-if="field.fieldType === 'file'" class="upload-container file-upload">
+              <view
+                class="file-upload-box"
+                :class="{ disabled: isFieldDisabled(field), hasFile: formData[field.fieldCode] }"
+                @tap="!isFieldDisabled(field) && uploadFile(field)"
+              >
+                <text class="file-icon">📄</text>
+                <text v-if="formData[field.fieldCode]" class="file-name">{{ formData[field.fieldCode] }}</text>
+                <text v-else class="placeholder">点击上传文件</text>
+              </view>
+            </view>
+
+            <!-- JSON 输入（暂时用文本域） -->
+            <textarea
+              v-else-if="field.fieldType === 'json'"
+              v-model="formData[field.fieldCode]"
+              class="field-textarea"
               :class="{ disabled: isFieldDisabled(field) }"
-              @tap="!isFieldDisabled(field) && uploadFile(field)"
-            >
-              <text v-if="formData[field.fieldCode]" class="file-name">{{ formData[field.fieldCode] }}</text>
-              <text v-else class="placeholder">点击上传文件</text>
-            </view>
+              :disabled="isFieldDisabled(field)"
+              :placeholder="`请输入${field.fieldName}`"
+              placeholder-class="input-placeholder"
+            />
           </view>
-
-          <!-- JSON 输入（暂时用文本域） -->
-          <textarea
-            v-else-if="field.fieldType === 'json'"
-            v-model="formData[field.fieldCode]"
-            class="field-textarea"
-            :class="{ disabled: isFieldDisabled(field) }"
-            :disabled="isFieldDisabled(field)"
-            :placeholder="`请输入${field.fieldName}`"
-          />
         </view>
       </view>
 
       <!-- 底部按钮 -->
       <view class="bottom-actions">
-        <!-- 上一步按钮 -->
-        <view v-if="groupCount > 1 && !isFirstTab" class="action-btn prev-btn" @tap="prevStep">
-          上一步
+        <!-- 进度指示器 -->
+        <view v-if="groupCount > 1" class="progress-indicator">
+          <view v-for="i in groupCount" :key="i" class="progress-dot" :class="{ active: i - 1 <= activeTab }" />
         </view>
 
-        <!-- 提交/下一步按钮 -->
-        <view class="action-btn next-btn" @tap="handleBottomAction">
-          <text v-if="groupCount === 1">提交申报</text>
-          <text v-else-if="isLastTab">提交申报</text>
-          <text v-else>下一步</text>
+        <view class="action-buttons">
+          <!-- 上一步按钮 -->
+          <view v-if="groupCount > 1 && !isFirstTab" class="action-btn prev-btn" @tap="prevStep">
+            上一步
+          </view>
+
+          <!-- 提交/下一步按钮 -->
+          <view class="action-btn next-btn" @tap="handleBottomAction">
+            <text v-if="groupCount === 1">提交申报</text>
+            <text v-else-if="isLastTab">提交申报</text>
+            <text v-else>下一步</text>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 加载失败 -->
     <view v-else class="error-container">
-      <text class="error-text">加载失败，请重试</text>
+      <view class="error-icon-wrapper">
+        <text class="error-icon">!</text>
+      </view>
+      <text class="error-title">加载失败</text>
+      <text class="error-desc">请检查网络后重试</text>
       <view class="retry-btn" @tap="fetchFormTemplate">
         重新加载
       </view>
@@ -613,41 +656,145 @@ onLoad(() => {
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding-bottom: 140rpx;
+  background: linear-gradient(180deg, #fff7f0 0%, #fafafa 30%, #f5f5f5 100%);
+  padding-bottom: 200rpx;
+  position: relative;
+  overflow: hidden;
 }
 
-.loading-container,
+// 背景装饰圆
+.bg-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 400rpx;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.bg-circle-1 {
+  width: 300rpx;
+  height: 300rpx;
+  background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
+  top: -100rpx;
+  right: -50rpx;
+  filter: blur(60rpx);
+}
+
+.bg-circle-2 {
+  width: 200rpx;
+  height: 200rpx;
+  background: linear-gradient(135deg, #fbb97d 0%, #fcd5b5 100%);
+  top: 100rpx;
+  left: -80rpx;
+  filter: blur(50rpx);
+}
+
+// 加载状态
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 300rpx;
+}
+
+.loading-icon-wrapper {
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(135deg, #fff7f0 0%, #ffedd5 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.loading-text {
+  color: #999;
+  font-size: 28rpx;
+}
+
+// 错误状态
 .error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 200rpx;
+  padding-top: 300rpx;
 }
 
-.loading-text {
-  margin-top: 20rpx;
-  color: #999;
-  font-size: 28rpx;
+.error-icon-wrapper {
+  width: 120rpx;
+  height: 120rpx;
+  background: linear-gradient(135deg, #fff2f0 0%, #ffe4e0 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
 }
 
-.error-text {
+.error-icon {
+  font-size: 60rpx;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+.error-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.error-desc {
+  font-size: 26rpx;
   color: #999;
-  font-size: 28rpx;
-  margin-bottom: 30rpx;
+  margin-bottom: 40rpx;
 }
 
 .retry-btn {
-  padding: 16rpx 48rpx;
-  background: #ff4d4f;
+  padding: 20rpx 64rpx;
+  background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 8rpx 24rpx rgba(249, 156, 95, 0.3);
 }
 
+// 表单内容
 .form-content {
-  padding: 24rpx;
+  padding: 32rpx;
+  position: relative;
+  z-index: 1;
+}
+
+// 页面标题
+.page-header {
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.page-subtitle {
+  font-size: 26rpx;
+  color: #999999;
 }
 
 // Tab 样式
@@ -657,7 +804,9 @@ onLoad(() => {
   border-radius: 16rpx;
   padding: 8rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    0 8rpx 24rpx rgba(0, 0, 0, 0.06);
 }
 
 .tab-item {
@@ -667,43 +816,97 @@ onLoad(() => {
   font-size: 28rpx;
   color: #666;
   border-radius: 12rpx;
-  transition: all 0.3s;
+  position: relative;
+  transition: all 0.3s ease;
 
   &.active {
-    background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+    color: #f99c5f;
+    font-weight: 600;
+    background: rgba(249, 156, 95, 0.1);
+  }
+}
+
+.tab-text {
+  position: relative;
+  z-index: 1;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
+  border-radius: 3rpx;
+}
+
+// 表单卡片
+.form-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow:
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    0 8rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+// 分组标题
+.group-header {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  background: linear-gradient(135deg, #fff7f0 0%, #ffedd5 100%);
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.group-icon {
+  width: 48rpx;
+  height: 48rpx;
+  background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+
+  text {
+    font-size: 24rpx;
     color: #fff;
-    font-weight: bold;
+    font-weight: 600;
   }
 }
 
 .group-title {
-  font-size: 32rpx;
-  font-weight: bold;
+  font-size: 30rpx;
+  font-weight: 600;
   color: #333;
-  padding: 24rpx 0;
-  margin-bottom: 16rpx;
 }
 
 // 表单字段样式
 .form-fields {
-  background: #fff;
-  border-radius: 16rpx;
   padding: 24rpx;
 }
 
 .form-item {
   margin-bottom: 32rpx;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .field-label {
   display: flex;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 .label-text {
   font-size: 28rpx;
   color: #333;
+  font-weight: 500;
 }
 
 .required-mark {
@@ -718,28 +921,58 @@ onLoad(() => {
   min-height: 88rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  background: #f8f8f8;
+  background: #f8f9fa;
   border-radius: 12rpx;
-  border: 2rpx solid #eee;
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #f99c5f;
+    background: #fff;
+  }
+}
+
+.input-placeholder {
+  color: #bbb;
+}
+
+.field-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+
+  &.hasValue {
+    background: #fff;
+    border-color: #f99c5f;
+  }
+}
+
+.picker-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+  font-weight: 300;
 }
 
 .field-input.error {
   border-color: #ff4d4f;
+  background: #fff;
 }
 
 .field-error {
   font-size: 24rpx;
   color: #ff4d4f;
   margin-top: 8rpx;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
 }
 
 .field-input.disabled,
 .field-picker.disabled {
-  background: #f0f0f0;
+  background: #f5f5f5;
   color: #999;
+  opacity: 0.7;
 }
 
 .field-textarea {
@@ -751,6 +984,33 @@ onLoad(() => {
   color: #bbb;
 }
 
+// 金额输入
+.money-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: #f99c5f;
+    background: #fff;
+  }
+}
+
+.money-prefix {
+  padding-left: 24rpx;
+  font-size: 28rpx;
+  color: #f99c5f;
+  font-weight: 600;
+}
+
+.money-input {
+  background: transparent !important;
+  border: none !important;
+}
+
 // 上传样式
 .upload-container {
   position: relative;
@@ -759,14 +1019,20 @@ onLoad(() => {
 .upload-box {
   width: 200rpx;
   height: 200rpx;
-  background: #f8f8f8;
+  background: #f8f9fa;
   border: 2rpx dashed #ddd;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: all 0.2s ease;
+
+  &.hasImage {
+    border-style: solid;
+    border-color: #f99c5f;
+  }
 
   &.disabled {
     opacity: 0.6;
@@ -785,8 +1051,9 @@ onLoad(() => {
 }
 
 .upload-icon {
-  font-size: 48rpx;
-  color: #ccc;
+  font-size: 56rpx;
+  color: #f99c5f;
+  font-weight: 300;
 }
 
 .upload-text {
@@ -797,8 +1064,11 @@ onLoad(() => {
 
 .ocr-tip {
   font-size: 20rpx;
-  color: #ff7875;
+  color: #f99c5f;
   margin-top: 8rpx;
+  padding: 4rpx 12rpx;
+  background: rgba(249, 156, 95, 0.1);
+  border-radius: 20rpx;
 }
 
 .uploading-mask {
@@ -807,25 +1077,42 @@ onLoad(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 16rpx;
+}
+
+// 文件上传
+.file-upload {
+  width: 100%;
 }
 
 .file-upload-box {
   width: 100%;
-  height: 88rpx;
-  background: #f8f8f8;
-  border: 2rpx solid #eee;
+  min-height: 88rpx;
+  background: #f8f9fa;
+  border: 2rpx solid transparent;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
+  transition: all 0.2s ease;
+
+  &.hasFile {
+    background: #fff;
+    border-color: #f99c5f;
+  }
 
   &.disabled {
     opacity: 0.6;
   }
+}
+
+.file-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
 }
 
 .file-name {
@@ -834,6 +1121,7 @@ onLoad(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
 // 底部按钮
@@ -842,12 +1130,36 @@ onLoad(() => {
   bottom: 0;
   left: 0;
   right: 0;
+  background: #fff;
+  padding: 20rpx 32rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}
+
+.progress-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.progress-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #e0e0e0;
+  transition: all 0.3s ease;
+
+  &.active {
+    background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
+    width: 32rpx;
+    border-radius: 8rpx;
+  }
+}
+
+.action-buttons {
   display: flex;
   gap: 24rpx;
-  padding: 24rpx;
-  background: #fff;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
 }
 
 .action-btn {
@@ -858,7 +1170,12 @@ onLoad(() => {
   justify-content: center;
   border-radius: 44rpx;
   font-size: 30rpx;
-  font-weight: bold;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .prev-btn {
@@ -867,7 +1184,8 @@ onLoad(() => {
 }
 
 .next-btn {
-  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  background: linear-gradient(135deg, #f99c5f 0%, #fbb97d 100%);
   color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(249, 156, 95, 0.3);
 }
 </style>
