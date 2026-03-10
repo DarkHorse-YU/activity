@@ -56,35 +56,18 @@ async function fetchSubsidyInfo() {
   }
 }
 
-// 检查登录状态，未登录则跳转登录页
-function checkLoginAndNavigate(url: string) {
-  // 直接读取 Storage，避免 Pinia 持久化插件初始化延迟问题
-  const token = uni.getStorageSync('token')
-  if (!token) {
-    uni.showToast({
-      title: '请先登录',
-      icon: 'none',
-    })
-    setTimeout(() => {
-      uni.navigateTo({ url: `/pages/auth/login?redirect=${encodeURIComponent(url)}` })
-    }, 1000)
-    return false
-  }
-  uni.navigateTo({ url })
-  return true
-}
-
-// 按钮点击事件
+// 按钮点击事件 - 登录检查由全局路由拦截器统一处理
+// 白名单配置见 src/router/config.ts 的 EXCLUDE_LOGIN_PATH_LIST
 function handleCarParticipate() {
   uni.navigateTo({ url: '/pages/activity/car-participate' })
 }
 
 function handleSubsidyApply() {
-  checkLoginAndNavigate('/pages/activity/subsidy-apply')
+  uni.navigateTo({ url: '/pages/activity/subsidy-apply' })
 }
 
 function handleMyApplication() {
-  checkLoginAndNavigate('/pages/activity/my-application')
+  uni.navigateTo({ url: '/pages/activity/my-application' })
 }
 
 function handleActivityRules() {

@@ -17,8 +17,11 @@ export const LOGIN_PAGE_LIST = [LOGIN_PAGE, REGISTER_PAGE]
 export const excludeLoginPathList = getAllPages('excludeLoginPath').map(page => page.path)
 
 // 排除在外的列表，白名单策略指白名单列表，黑名单策略指黑名单列表
+// 需要登录的页面不用配置，拦截器会自动跳转登录页
 export const EXCLUDE_LOGIN_PATH_LIST = [
-  '/pages/index/index', // 首页，不需要登录即可访问
+  '/pages/index/index', // 首页
+  '/pages/activity/car-participate', // 参与企业
+  '/pages/activity/rules', // 活动规则
   ...excludeLoginPathList, // 都是以 / 开头的 path
 ]
 
