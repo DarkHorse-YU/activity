@@ -72,8 +72,8 @@ function viewDetail(id: number) {
   uni.navigateTo({ url: `/pages/activity/application-detail?id=${id}` })
 }
 
-// 页面加载
-onLoad(() => {
+// 页面显示时刷新数据（从详情页返回时也能刷新）
+onShow(() => {
   fetchApplications()
 })
 </script>
