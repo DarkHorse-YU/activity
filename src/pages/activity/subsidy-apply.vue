@@ -1,9 +1,12 @@
 <script lang="ts" setup>
-import { uploadSubsidyFile } from '@/api/login'
-import { http } from '@/http/http'
+import {
+  getSubsidyFormTemplate,
+  submitSubsidyApplication,
+  uploadSubsidyFile,
+} from '@/api/subsidy-activity'
 
 defineOptions({
-  name: 'SubsidyApply',
+  name: 'SubsidyActivityApply',
 })
 definePage({
   style: {
@@ -67,9 +70,7 @@ const isLastTab = computed(() => activeTab.value === groupCount.value - 1)
 async function fetchFormTemplate() {
   try {
     loading.value = true
-    const res = await http.get<FormTemplate>('/activity/subsidy/user/form', {
-      activityCode: 'CAR_SUBSIDY_2026_SPRING',
-    })
+    const res = await getSubsidyFormTemplate<FormTemplate>('CAR_SUBSIDY_2026_SPRING')
     formTemplate.value = res
   }
   catch (error) {
@@ -383,7 +384,7 @@ async function submitForm() {
   }
 
   try {
-    await http.post('/activity/subsidy/user/application', submitData)
+    await submitSubsidyApplication(submitData)
     uni.showToast({ title: '提交成功', icon: 'success' })
     setTimeout(() => {
       uni.reLaunch({ url: '/pages/index/index' })

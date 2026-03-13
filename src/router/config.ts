@@ -20,8 +20,11 @@ export const excludeLoginPathList = getAllPages('excludeLoginPath').map(page => 
 // 需要登录的页面不用配置，拦截器会自动跳转登录页
 export const EXCLUDE_LOGIN_PATH_LIST = [
   '/pages/index/index', // 首页
+  '/pages/activity/index', // 补贴活动首页
   '/pages/activity/car-participate', // 参与企业
   '/pages/activity/rules', // 活动规则
+  '/pages/coupon-activity/index', // 抢券活动首页
+  '/pages/coupon-activity/rules', // 抢券活动规则
   ...excludeLoginPathList, // 都是以 / 开头的 path
 ]
 

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { http } from '@/http/http'
+import { getSubsidyApplicationList } from '@/api/subsidy-activity'
 
 defineOptions({
-  name: 'MyApplication',
+  name: 'SubsidyMyApplication',
 })
 definePage({
   style: {
-    navigationBarTitleText: '我的申报',
+    navigationBarTitleText: '我的补贴申报',
   },
 })
 
@@ -52,7 +52,7 @@ const applications = ref<ApplicationItem[]>([])
 async function fetchApplications() {
   try {
     loading.value = true
-    const res = await http.get<{ list: ApplicationItem[] }>('/activity/subsidy/user/application', {
+    const res = await getSubsidyApplicationList<{ list: ApplicationItem[] }>({
       page: 1,
       size: 100,
     })

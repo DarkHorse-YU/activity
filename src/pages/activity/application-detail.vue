@@ -1,13 +1,16 @@
 <script lang="ts" setup>
-import { uploadSubsidyFile } from '@/api/login'
-import { http } from '@/http/http'
+import {
+  getSubsidyApplicationDetail,
+  resubmitSubsidyApplication,
+  uploadSubsidyFile,
+} from '@/api/subsidy-activity'
 
 defineOptions({
-  name: 'ApplicationDetail',
+  name: 'SubsidyApplicationDetail',
 })
 definePage({
   style: {
-    navigationBarTitleText: '申报详情',
+    navigationBarTitleText: '补贴申报详情',
   },
 })
 
@@ -118,7 +121,7 @@ const issues = computed(() => applicationDetail.value?.currentSubmission?.issues
 async function fetchApplicationDetail(id: number) {
   try {
     loading.value = true
-    applicationDetail.value = await http.get<ApplicationDetail>(`/activity/subsidy/user/application/${id}`)
+    applicationDetail.value = await getSubsidyApplicationDetail<ApplicationDetail>(id)
 
     // 初始化表单数据
     initFormData()
@@ -413,7 +416,7 @@ async function resubmit() {
 
   try {
     uni.showLoading({ title: '提交中...' })
-    await http.post(`/activity/subsidy/user/application/${applicationId}/resubmit`, submitData)
+    await resubmitSubsidyApplication(applicationId!, submitData)
     uni.hideLoading()
     uni.showToast({ title: '提交成功', icon: 'success' })
     setTimeout(() => {

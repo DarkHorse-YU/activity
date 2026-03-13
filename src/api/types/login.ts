@@ -109,29 +109,3 @@ export interface IUpdatePassword {
   newPassword: string
   confirmPassword: string
 }
-
-/**
- * 补贴申报上传文件请求参数
- */
-export interface ISubsidyFileUploadReq {
-  file: File
-  needOcr: boolean
-  ocrMappingKey?: string | null
-}
-
-/**
- * OCR识别结果
- */
-export interface IOcrResult {
-  [key: string]: string
-}
-
-/**
- * 补贴申报上传文件响应
- */
-export interface ISubsidyFileUploadRes {
-  subsidyFileId: number
-  url: string
-  thUrl: string
-  ocrResult?: IOcrResult
-}

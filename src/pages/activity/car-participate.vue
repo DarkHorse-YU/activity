@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 defineOptions({
-  name: 'CarParticipate',
+  name: 'SubsidyCarParticipate',
 })
 definePage({
   style: {
-    navigationBarTitleText: '参与车企',
+    navigationBarTitleText: '补贴参与车企',
   },
 })
 

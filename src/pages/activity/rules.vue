@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 defineOptions({
-  name: 'ActivityRules',
+  name: 'SubsidyActivityRules',
 })
 definePage({
   style: {
-    navigationBarTitleText: '活动规则',
+    navigationBarTitleText: '补贴活动规则',
   },
 })
 </script>

@@ -3,7 +3,6 @@ import type {
   EmailLoginReq,
   IAuthLoginRes,
   ICaptcha,
-  ISubsidyFileUploadRes,
   IUpdateInfo,
   IUpdatePassword,
   IUserInfoRes,
@@ -111,58 +110,5 @@ export function wxLogin(data: { code: string }) {
     clientId: import.meta.env.VITE_CLIENT_ID,
     authType: AuthTypeConstants.SOCIAL,
     source: 'wechat_mini',
-  })
-}
-
-/**
- * 上传补贴申报文件（图片或文件）
- * @param filePath 文件临时路径
- * @param options 上传选项
- * @returns Promise<ISubsidyFileUploadRes> 上传结果
- */
-export function uploadSubsidyFile(
-  filePath: string,
-  options: {
-    needOcr: boolean
-    ocrMappingKey?: string | null
-  },
-): Promise<ISubsidyFileUploadRes> {
-  return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('token')
-
-    uni.uploadFile({
-      url: `${import.meta.env.VITE_SERVER_BASEURL}/activity/subsidy/user/file`,
-      filePath,
-      name: 'file',
-      formData: {
-        needOcr: options.needOcr ? 'true' : 'false',
-        ...(options.ocrMappingKey ? { ocrMappingKey: options.ocrMappingKey } : {}),
-      },
-      header: {
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-      success: (res) => {
-        if (res.statusCode === 200) {
-          try {
-            const data = JSON.parse(res.data)
-            if (data.code === '0' && data.success) {
-              resolve(data.data)
-            }
-            else {
-              reject(new Error(data.msg || '上传失败'))
-            }
-          }
-          catch {
-            reject(new Error('解析响应失败'))
-          }
-        }
-        else {
-          reject(new Error(`上传失败，状态码: ${res.statusCode}`))
-        }
-      },
-      fail: (err) => {
-        reject(new Error(err.errMsg || '上传失败'))
-      },
-    })
   })
 }
