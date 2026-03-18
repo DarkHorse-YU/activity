@@ -114,81 +114,101 @@ function handleScanVerification() {
 
 <template>
   <view class="page-container">
-    <view class="hero-card">
-      <view class="hero-tag">
-        Merchant
+    <view class="hero-panel">
+      <view class="hero-badge">
+        商家端
       </view>
       <view class="hero-title">
-        优惠券核销工作台
+        优惠券核销
       </view>
       <view class="hero-desc">
-        商家在这里完成核销、补传凭证和规则查看。核销成功后，如需上传凭证会自动进入对应详情页。
+        扫码优先，输码备用
       </view>
     </view>
 
-    <view class="action-panel">
-      <view class="panel-title">
-        开始核销
+    <view class="control-stack">
+      <view class="scan-panel" @tap="handleScanVerification">
+        <view class="scan-panel__icon">
+          扫
+        </view>
+        <view class="scan-panel__title">
+          扫码核销
+        </view>
+        <view class="scan-panel__desc">
+          扫描二维码或条形码
+        </view>
+        <view class="scan-trigger">
+          <text class="scan-trigger__text">立即扫码</text>
+          <text class="scan-trigger__arrow">></text>
+        </view>
       </view>
 
-      <view class="scan-entry" @tap="handleScanVerification">
-        <view>
-          <view class="entry-title">
-            扫码核销
-          </view>
-          <view class="entry-subtitle">
-            扫描用户二维码，快速完成核销
-          </view>
+      <view class="manual-panel">
+        <view class="section-title">
+          输码核销
         </view>
-        <view class="entry-arrow">
+        <view class="manual-form">
+          <input
+            v-model="verificationCode"
+            class="code-input"
+            placeholder="请输入券码或核销码"
+            placeholder-class="input-placeholder"
+            confirm-type="done"
+            @confirm="handleCodeInputConfirm"
           >
-        </view>
-      </view>
-
-      <view class="manual-card">
-        <view class="manual-title">
-          输入核销码
-        </view>
-        <input
-          v-model="verificationCode"
-          class="manual-input"
-          placeholder="请输入券码或核销码"
-          placeholder-class="manual-placeholder"
-          confirm-type="done"
-          @confirm="handleCodeInputConfirm"
-        >
-        <view class="manual-button" :class="{ disabled: submitting }" @tap="submitCodeVerification">
-          {{ submitting ? '提交中...' : '确认核销' }}
-        </view>
-      </view>
-    </view>
-
-    <view class="menu-list">
-      <view class="menu-card" @tap="goToRecords">
-        <view>
-          <view class="entry-title">
-            核销记录
-          </view>
-          <view class="entry-subtitle">
-            查看历史核销状态和凭证处理进度
-          </view>
-        </view>
-        <view class="entry-arrow">
+          <button
+            class="submit-btn"
+            :class="{ loading: submitting }"
+            :disabled="submitting"
+            @tap="submitCodeVerification"
           >
+            {{ submitting ? '核销中' : '确认' }}
+          </button>
         </view>
       </view>
 
-      <view class="menu-card secondary" @tap="goToRules">
-        <view>
-          <view class="entry-title">
-            规则说明
+      <view class="action-list">
+        <view class="action-row records-card" @tap="goToRecords">
+          <view class="action-row__icon">
+            录
           </view>
-          <view class="entry-subtitle">
-            查看核销规范、凭证要求和异常说明
+          <view class="action-row__content">
+            <view class="action-row__title">
+              核销记录
+            </view>
+            <view class="action-row__desc">
+              查看历史记录
+            </view>
+          </view>
+          <view class="action-row__arrow">
+            >
           </view>
         </view>
-        <view class="entry-arrow">
-          >
+
+        <view class="action-row rules-card" @tap="goToRules">
+          <view class="action-row__icon">
+            规
+          </view>
+          <view class="action-row__content">
+            <view class="action-row__title">
+              规则说明
+            </view>
+            <view class="action-row__desc">
+              查看核销规则
+            </view>
+          </view>
+          <view class="action-row__arrow">
+            >
+          </view>
+        </view>
+      </view>
+
+      <view class="foot-note">
+        <view class="foot-note__label">
+          提示
+        </view>
+        <view class="foot-note__text">
+          核销成功后，如需上传凭证将自动跳转详情页。
         </view>
       </view>
     </view>
@@ -198,148 +218,274 @@ function handleScanVerification() {
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
-  padding: 32rpx 28rpx 48rpx;
+  padding: 28rpx 24rpx calc(44rpx + env(safe-area-inset-bottom));
   background:
-    radial-gradient(circle at top right, rgba(22, 163, 74, 0.16), transparent 30%),
-    linear-gradient(180deg, #f4fbf6 0%, #eef9f1 35%, #ffffff 100%);
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 28%),
+    linear-gradient(180deg, #f0f9ff 0%, #f8fcff 36%, #ffffff 100%);
 }
 
-.hero-card,
-.action-panel,
-.menu-card,
-.manual-card,
-.scan-entry {
-  border-radius: 28rpx;
+.hero-panel {
+  padding: 20rpx 6rpx 8rpx;
+  text-align: center;
 }
 
-.hero-card {
-  padding: 36rpx 32rpx;
-  background: linear-gradient(135deg, #14532d 0%, #15803d 55%, #22c55e 100%);
-  box-shadow: 0 18rpx 48rpx rgba(20, 83, 45, 0.2);
-}
-
-.hero-tag {
+.hero-badge {
   display: inline-flex;
-  padding: 8rpx 16rpx;
+  align-items: center;
+  padding: 10rpx 20rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.14);
-  color: #f0fdf4;
-  font-size: 22rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .hero-title {
-  margin-top: 20rpx;
-  font-size: 46rpx;
-  font-weight: 700;
-  color: #fff;
+  margin-top: 22rpx;
+  font-size: 56rpx;
+  font-weight: 800;
+  line-height: 1.12;
+  color: #0f172a;
 }
 
 .hero-desc {
-  margin-top: 16rpx;
+  margin-top: 14rpx;
   font-size: 25rpx;
-  line-height: 1.7;
-  color: rgba(240, 253, 244, 0.92);
+  color: #475569;
 }
 
-.action-panel {
-  margin-top: 28rpx;
-  padding: 28rpx;
-  background: #fff;
-  box-shadow: 0 12rpx 36rpx rgba(15, 23, 42, 0.06);
-}
-
-.panel-title {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.scan-entry,
-.menu-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  padding: 28rpx 24rpx;
-  background: #f6fbf7;
-  border: 2rpx solid rgba(34, 197, 94, 0.08);
-}
-
-.scan-entry {
-  margin-top: 24rpx;
-}
-
-.manual-card {
-  margin-top: 20rpx;
-  padding: 24rpx;
-  background: #f8fafc;
-}
-
-.manual-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #111827;
-}
-
-.manual-input {
-  height: 88rpx;
-  margin-top: 18rpx;
-  padding: 0 24rpx;
-  border-radius: 20rpx;
-  background: #fff;
-  font-size: 28rpx;
-  border: 2rpx solid rgba(148, 163, 184, 0.14);
-  box-sizing: border-box;
-}
-
-.manual-placeholder {
-  color: #94a3b8;
-}
-
-.manual-button {
-  margin-top: 18rpx;
-  height: 84rpx;
-  border-radius: 42rpx;
-  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-  color: #fff;
-  font-size: 30rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &.disabled {
-    opacity: 0.7;
-  }
-}
-
-.menu-list {
+.control-stack {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
-  margin-top: 24rpx;
+  margin-top: 20rpx;
 }
 
-.menu-card.secondary {
+.scan-panel,
+.manual-panel,
+.action-row,
+.foot-note {
+  border-radius: 32rpx;
+  background: #fff;
+  box-shadow: 0 14rpx 38rpx rgba(15, 23, 42, 0.08);
+}
+
+.scan-panel {
+  padding: 38rpx 30rpx 32rpx;
+  background: linear-gradient(180deg, #0f172a 0%, #1d4ed8 100%);
+  text-align: center;
+}
+
+.scan-panel:active,
+.action-row:active {
+  transform: scale(0.985);
+}
+
+.scan-panel__icon {
+  width: 120rpx;
+  height: 120rpx;
+  margin: 0 auto;
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46rpx;
+  font-weight: 800;
+  color: #ecfeff;
+}
+
+.scan-panel__title {
+  margin-top: 24rpx;
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.scan-panel__desc {
+  margin-top: 10rpx;
+  font-size: 25rpx;
+  color: rgba(236, 254, 255, 0.82);
+}
+
+.scan-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 28rpx;
+  padding: 18rpx 28rpx;
+  border-radius: 999rpx;
   background: #ffffff;
 }
 
-.entry-title {
-  font-size: 32rpx;
-  font-weight: 700;
+.scan-trigger__text {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.scan-trigger__arrow {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.manual-panel {
+  padding: 28rpx;
+  border: 2rpx solid rgba(14, 165, 233, 0.12);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: left;
+}
+
+.manual-form {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.code-input {
+  flex: 1;
+  height: 92rpx;
+  padding: 0 26rpx;
+  border-radius: 22rpx;
+  background: #f8fafc;
+  border: 2rpx solid #dbeafe;
+  font-size: 28rpx;
+  color: #0f172a;
+}
+
+.input-placeholder {
+  color: #94a3b8;
+}
+
+.submit-btn {
+  width: 188rpx;
+  height: 92rpx;
+  padding: 0;
+  border: none;
+  border-radius: 22rpx;
+  background: linear-gradient(135deg, #0f766e 0%, #10b981 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #f0fdfa;
+  box-shadow: 0 12rpx 24rpx rgba(15, 118, 110, 0.16);
+
+  &.loading {
+    opacity: 0.75;
+  }
+
+  &::after {
+    border: none;
+  }
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 24rpx 26rpx;
+}
+
+.action-row__icon {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.action-row__content {
+  flex: 1;
+}
+
+.action-row__title {
+  font-size: 30rpx;
+  font-weight: 800;
   color: #111827;
 }
 
-.entry-subtitle {
-  margin-top: 10rpx;
+.action-row__desc {
+  margin-top: 6rpx;
   font-size: 24rpx;
   line-height: 1.6;
-  color: #64748b;
+  color: #6b7280;
 }
 
-.entry-arrow {
-  font-size: 34rpx;
+.action-row__arrow {
+  flex-shrink: 0;
+  font-size: 28rpx;
   font-weight: 700;
-  color: #16a34a;
+  color: #94a3b8;
+}
+
+.records-card {
+  border: 2rpx solid rgba(37, 99, 235, 0.1);
+
+  .action-row__icon {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1d4ed8;
+  }
+}
+
+.rules-card {
+  border: 2rpx solid rgba(245, 158, 11, 0.12);
+
+  .action-row__icon {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #b45309;
+  }
+}
+
+.foot-note {
+  padding: 22rpx 24rpx;
+  border: 2rpx solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.foot-note__label {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #0ea5e9;
+}
+
+.foot-note__text {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #475569;
+}
+
+@media (max-width: 680rpx) {
+  .manual-form {
+    flex-direction: column;
+  }
+
+  .submit-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520rpx) {
+  .hero-title {
+    font-size: 48rpx;
+  }
 }
 </style>

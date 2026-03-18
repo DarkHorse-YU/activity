@@ -17,6 +17,10 @@ function goToSubsidyActivity() {
 function goToCouponActivity() {
   uni.navigateTo({ url: '/pages/coupon-activity/index' })
 }
+
+function goToCouponVerification() {
+  uni.navigateTo({ url: '/pages/coupon-verification/index' })
+}
 </script>
 
 <template>
@@ -61,6 +65,23 @@ function goToCouponActivity() {
           </view>
           <view class="entry-desc">
             进入抢券活动首页，查看规则和我的券码。
+          </view>
+        </view>
+        <view class="entry-arrow">
+          >
+        </view>
+      </view>
+
+      <view class="entry-card verification" @tap="goToCouponVerification">
+        <view class="entry-badge">
+          抢券核销
+        </view>
+        <view class="entry-content">
+          <view class="entry-title">
+            优惠券核销入口
+          </view>
+          <view class="entry-desc">
+            进入抢券核销首页，支持扫码核销、输码核销、查看记录和规则。
           </view>
         </view>
         <view class="entry-arrow">
@@ -133,6 +154,10 @@ function goToCouponActivity() {
 
   &.coupon {
     border: 2rpx solid rgba(245, 158, 11, 0.14);
+  }
+
+  &.verification {
+    border: 2rpx solid rgba(34, 197, 94, 0.14);
   }
 }
 
