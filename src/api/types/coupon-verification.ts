@@ -133,3 +133,19 @@ export interface ICouponVerificationUploadRes {
   thUrl: string
   ocrResult?: ICouponVerificationOcrResult
 }
+
+// 扫码核销预检返回
+export interface ICouponWriteOffPrepareData {
+  canWriteOff: boolean
+  cannotReason: string | null
+  claimId: number
+  couponNo: string
+  activityId: number
+  activityName: string
+  templateId: number | null
+  templateName: string
+  couponType: 'DISCOUNT' | 'CASH'
+  discountRate: number | null
+  discountAmount: number | null
+  thresholdAmount: number | null
+}

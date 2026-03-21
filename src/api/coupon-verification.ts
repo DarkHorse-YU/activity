@@ -1,11 +1,29 @@
 import type {
   ICouponVerificationActionRes,
   ICouponVerificationUploadRes,
+  ICouponWriteOffPrepareData,
 } from './types/coupon-verification'
 import { http } from '@/http/http'
 
 const BASE_URL = '/merchant/coupon/verification'
+const WRITE_OFF_URL = '/coupon/merchant/write-off'
 
+// 扫码核销预检（查询券信息）
+export function prepareWriteOff<T = ICouponWriteOffPrepareData>(qrToken: string) {
+  return http.get<T>(`${WRITE_OFF_URL}/prepare`, { qrToken })
+}
+
+// 确认核销
+export function confirmWriteOff<T = ICouponVerificationActionRes>(data: {
+  couponNo: string
+  writeOffMode: 'QR_SCAN' | 'CODE_INPUT'
+  requestNo: string
+  remark?: string
+}) {
+  return http.post<T>(WRITE_OFF_URL, data)
+}
+
+// 旧接口（保留兼容）
 export function verifyCouponByScan<T = ICouponVerificationActionRes>(data: Record<string, any>) {
   return http.post<T>(`${BASE_URL}/scan`, data)
 }
