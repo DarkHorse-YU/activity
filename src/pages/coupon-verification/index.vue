@@ -250,10 +250,7 @@ async function startH5Scanner() {
       },
       {
         fps: 10,
-        qrbox: (viewfinderWidth, viewfinderHeight) => {
-          const size = Math.floor(Math.min(viewfinderWidth * 0.82, viewfinderHeight * 0.48))
-          return { width: size, height: size }
-        },
+        qrbox: { width: 220, height: 220 },
         disableFlip: false,
         videoConstraints: {
           facingMode: { ideal: 'environment' },
@@ -541,7 +538,6 @@ onBeforeUnmount(() => {
       <div class="scanner-body">
         <div class="scanner-stage">
           <div id="coupon-scanner-root" class="scanner-root" />
-          <div class="scanner-frame" />
         </div>
       </div>
       <view class="scanner-tip">
@@ -1195,7 +1191,8 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: 1;
-  transform: translateY(80rpx);
+  overflow: hidden;
+  border-radius: 28rpx;
 }
 
 :deep(#coupon-scanner-root) {
@@ -1206,6 +1203,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   overflow: hidden;
   background: #000;
+  border-radius: 28rpx;
 }
 
 :deep(#coupon-scanner-root > div) {
@@ -1215,6 +1213,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: 28rpx;
 }
 
 :deep(#coupon-scanner-root video) {
@@ -1222,6 +1221,7 @@ onBeforeUnmount(() => {
   height: 100% !important;
   object-fit: cover;
   background: #000;
+  border-radius: 28rpx;
 }
 
 :deep(#coupon-scanner-root canvas) {
@@ -1242,27 +1242,6 @@ onBeforeUnmount(() => {
 
 :deep(#coupon-scanner-root #qr-shaded-region) {
   display: none !important;
-}
-
-.scanner-frame {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 3;
-  border-radius: 24rpx;
-  background:
-    linear-gradient(#f3ead1, #f3ead1) left top / 40rpx 4rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) left top / 4rpx 40rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) right top / 40rpx 4rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) right top / 4rpx 40rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) left bottom / 40rpx 4rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) left bottom / 4rpx 40rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) right bottom / 40rpx 4rpx no-repeat,
-    linear-gradient(#f3ead1, #f3ead1) right bottom / 4rpx 40rpx no-repeat;
 }
 
 .scanner-tip {

@@ -86,7 +86,7 @@ export function receiveCoupon<T = void>(data?: Record<string, any>) {
 // 领取优惠券请求参数
 export interface ClaimCouponParams {
   templateId: number | string
-  captchaVerification: string // 行为验证码二次校验参数
+  captchaToken: string // 行为验证码二次校验参数
 }
 
 // 领取优惠券（带验证码）

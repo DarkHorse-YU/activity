@@ -78,7 +78,7 @@ async function handleVerifySuccess(params: { captchaVerification: string }) {
   try {
     await claimCoupon({
       templateId: currentClaimCoupon.value.id,
-      captchaVerification: params.captchaVerification,
+      captchaToken: params.captchaVerification,
     })
 
     uni.showToast({
