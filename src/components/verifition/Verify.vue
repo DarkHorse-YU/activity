@@ -1,5 +1,5 @@
 <template>
-  <view v-show="isVisible" :class="mode === 'pop' ? 'mask' : ''">
+  <view v-if="isVisible" :class="mode === 'pop' ? 'mask' : ''">
     <view
       class="verifybox"
       :class="mode === 'pop' ? '' : 'verifybox-fixed'"

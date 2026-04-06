@@ -50,6 +50,8 @@
             transition: transitionLeft,
           }"
           @touchstart="start"
+          @touchmove.prevent="move"
+          @touchend="end"
           @mousedown="start"
         >
           <text class="verify-icon" :style="{ color: iconColor }">{{ iconClass }}</text>
@@ -142,13 +144,15 @@ const showRefresh = ref(true)
 const transitionLeft = ref('')
 const transitionWidth = ref('')
 
+// 拖动起始触摸 X 坐标（已减去当时滑块已有的偏移量）
+const dragStartX = ref(0)
+
 // 初始化
 function init() {
   text.value = props.explain
   getPictrue()
   emit('ready', {})
 
-  // 重置状态
   passFlag.value = false
   isEnd.value = false
   showRefresh.value = true
@@ -160,7 +164,16 @@ function init() {
   iconClass.value = '→'
 }
 
-// 触摸开始
+// 从事件中获取 X 坐标
+function getEventX(e: any): number {
+  if (e.touches && e.touches.length > 0)
+    return Math.ceil(e.touches[0].clientX)
+  if (e.clientX !== undefined)
+    return Math.ceil(e.clientX)
+  return 0
+}
+
+// 触摸/鼠标开始
 function start(e: any) {
   if (isEnd.value)
     return
@@ -171,54 +184,44 @@ function start(e: any) {
   moveBlockBackgroundColor.value = '#337ab7'
   leftBarBorderColor.value = '#337AB7'
   iconColor.value = '#fff'
+
+  // 当前滑块已有的 left 偏移
+  const currentLeft = Number.parseInt((moveBlockLeft.value || '').replace('px', '') || '0')
+  // 记录：触摸起始 X - 已有偏移 = dragStartX
+  // 这样 move 时：offset = currentX - dragStartX = 新的 left 值
+  dragStartX.value = getEventX(e) - currentLeft
 }
 
-// 触摸移动
+// 触摸/鼠标移动
 function move(e: any) {
   if (!status.value || isEnd.value)
     return
 
-  const query = uni.createSelectorQuery().in(getCurrentInstance())
-  query.select('.verify-bar-area').boundingClientRect((data: any) => {
-    if (!data)
-      return
+  const x = getEventX(e)
+  if (x === 0)
+    return
 
-    const barAreaLeft = Math.ceil(data.left)
+  // 直接算出新的偏移量（同步，无 DOM 查询）
+  let offset = x - dragStartX.value
 
-    let x = 0
-    if (!e.touches) {
-      x = Math.ceil(e.clientX)
-    }
-    else {
-      x = Math.ceil(e.touches[0].pageX)
-    }
+  // 边界控制
+  const imgWidth = Number.parseInt(setSize.imgWidth)
+  const blockWidth = Number.parseInt(props.blockSize.width)
 
-    // 小方块相对于父元素的left值
-    let moveBlockLeftValue = x - barAreaLeft
+  if (props.type !== '1') {
+    const maxLeft = imgWidth - blockWidth
+    if (offset > maxLeft)
+      offset = maxLeft
+  }
 
-    // 图片滑动模式的边界控制（基于图片宽度，不是滑动条宽度）
-    if (props.type !== '1') {
-      const imgWidth = Number.parseInt(setSize.imgWidth)
-      const blockWidth = Number.parseInt(props.blockSize.width)
-      const maxLeft = imgWidth - blockWidth
-      const maxMove = maxLeft + Math.floor(blockWidth / 2)
-      if (moveBlockLeftValue >= maxMove) {
-        moveBlockLeftValue = maxMove
-      }
-    }
+  if (offset < 0)
+    offset = 0
 
-    if (moveBlockLeftValue <= 0) {
-      moveBlockLeftValue = Math.floor(Number.parseInt(props.blockSize.width) / 2)
-    }
-
-    // 拖动后小方块的left值
-    const left = moveBlockLeftValue - Math.floor(Number.parseInt(props.blockSize.width) / 2)
-    moveBlockLeft.value = `${left}px`
-    leftBarWidth.value = `${left}px`
-  }).exec()
+  moveBlockLeft.value = `${offset}px`
+  leftBarWidth.value = `${offset}px`
 }
 
-// 触摸结束
+// 触摸/鼠标结束
 function end() {
   if (!status.value || isEnd.value)
     return
@@ -250,7 +253,6 @@ function end() {
       passFlag.value = true
       tipWords.value = `${((endMovetime.value - startMoveTime.value) / 1000).toFixed(2)}s验证成功`
 
-      // 使用后端返回的 captchaVerification，如果没有则自己构造
       const captchaVerification = res.captchaVerification
         || (secretKey.value
           ? aesEncrypt(`${backToken.value}---${JSON.stringify({ x: moveLeftDistance, y: 5.0 })}`, secretKey.value)
@@ -330,10 +332,10 @@ function getPictrue() {
   })
 }
 
-// 绑定全局触摸事件
 onMounted(() => {
   init()
 
+  // H5 端：需要在 window 上监听 move/end，因为鼠标可能移出滑块元素
   // #ifdef H5
   window.addEventListener('touchmove', move)
   window.addEventListener('mousemove', move)
@@ -351,7 +353,6 @@ onUnmounted(() => {
   // #endif
 })
 
-// 暴露方法
 defineExpose({
   refresh,
 })

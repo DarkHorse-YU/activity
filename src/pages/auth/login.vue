@@ -348,14 +348,18 @@ $transition-fast: 150ms ease-out;
 $transition-normal: 200ms ease-out;
 
 // ========================================
-// REDUCED MOTION SUPPORT
+// REDUCED MOTION SUPPORT (仅 H5)
 // ========================================
+/* #ifdef H5 */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
+/* #endif */
 
 // ========================================
 // CONTAINER & BACKGROUND
