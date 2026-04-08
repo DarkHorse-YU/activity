@@ -32,6 +32,7 @@ const upcomingEvents = ref([
     startTime: '2026-06-10',
     endTime: '2026-06-30',
     bgColor: '#fde8e8',
+    imageUrl: '',
     typeName: '补贴',
     typeColor: '#e84040',
     url: '/pages/activity/index',
@@ -45,6 +46,7 @@ const upcomingEvents = ref([
     startTime: '2026-06-10',
     endTime: '2026-06-20',
     bgColor: '#dff0ff',
+    imageUrl: '',
     typeName: '抢券',
     typeColor: '#f0932b',
     url: '/pages/coupon-activity/index',
@@ -141,7 +143,14 @@ function navigate(url: string) {
           class="ev-card"
           @tap="navigate(item.url)"
         >
-          <view class="ev-img" :style="{ background: item.bgColor }">
+          <view class="ev-img" :style="{ backgroundColor: item.bgColor }">
+            <image
+              v-if="item.imageUrl"
+              class="ev-img-banner"
+              :src="item.imageUrl"
+              mode="aspectFill"
+            />
+            <view class="ev-img-mask" />
             <view class="type-badge">
               <text class="type-badge-icon" :style="{ color: item.typeColor }">{{ item.typeName }}</text>
             </view>
@@ -416,7 +425,21 @@ $accent: #f59e0b;
 
 .ev-img {
   position: relative;
-  height: 210rpx;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.ev-img-banner {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ev-img-mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.08) 0%, rgba(15, 23, 42, 0.16) 100%);
 }
 
 .type-badge {
